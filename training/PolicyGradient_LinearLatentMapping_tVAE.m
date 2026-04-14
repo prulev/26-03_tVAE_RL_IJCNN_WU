@@ -196,7 +196,7 @@ clearvars("data", "mPFC_model", "M1_model", "pyfunc", "res");
 % randstr = ['a':'z' '0':'9'];
 % randId = [datestr(datetime,'mmmdd_HHMM'),'_',randstr(randi(length(randstr),1,4))];
 % targetFile = ['results/temp/',opt.DataIndex,'_RL_',num2str(opt.testFold),'_',randId];
-targetFile = ['results/',opt.modelName, opt.DataIndex,'_RL_oldHP_',num2str(opt.testFold)];
+targetFile = ['results/',opt.modelName, opt.DataIndex,'_RL_oldHP_',num2str(opt.testFold)];  % save TC results to results/TC/...
 save(targetFile)
 
 end

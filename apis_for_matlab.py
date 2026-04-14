@@ -2,7 +2,7 @@ import torch
 import numpy as np
 
 from configs.config import get_config
-from model.models import VAE
+from model.models_new import VAE
 
 
 default_config = get_config()
@@ -31,10 +31,11 @@ def get_model(rat, test_fold, latent_dim, region, neuron_num):
         'MODEL.EMBED_DIM', embed_dim,
         'MODEL.DECODER_POS', True,
         'TRAIN.BATCH_SIZE_TEST', 64 * 16,
+        'TRAIN.MU_PRIORI_SIGMA', 10.0,
     ])
 
-    model = VAE(config, device, neuron_num, neuron_num, True).to(device)
-    checkpoint = torch.load(f'latent_models/tVAE_{rat}_{region}_{test_fold}_1En1De_{latent_dim}latent_decoder_pos.pth',
+    model = VAE(config, device, neuron_num, neuron_num).to(device)
+    checkpoint = torch.load(f'latent_models/TCtVAE_{rat}_{region}_{test_fold}_1En1De_{latent_dim}latent_0.0005gamma_decoder_pos.pth',   # USE TC LATENT MODELS, Ziyi 260408
                             map_location=device, weights_only=False)        # in pytorch 2.6+, weights_only=False to load the entire checkpoint, Ziyi 26-03-06
     model.load_state_dict(checkpoint['model_state_dict'])
     model.eval()

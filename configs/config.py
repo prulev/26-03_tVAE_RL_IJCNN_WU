@@ -19,6 +19,8 @@ _C.DATA.RAT = ''
 _C.DATA.REGION = ''
 _C.DATA.TEST_FOLD = 0
 _C.DATA.SELECT_M1 = True
+_C.DATA.TRAIN_UNSUCCESS = False
+_C.DATA.RATE_INPUT = False
 
 # -----------------------------------------------------------------------------
 # Model
@@ -26,6 +28,7 @@ _C.DATA.SELECT_M1 = True
 _C.MODEL = CfgNode()
 _C.MODEL.NAME = "NeuralDataTransformerVAE"
 _C.MODEL.VARIATIONAL = True
+_C.MODEL.TC_LOSS = True
 _C.MODEL.HIDDEN_SIZE = 32  # dimension of the feedforward network model in ``nn.TransformerEncoder``
 _C.MODEL.DROPOUT = .1  # dropout probability TODO: different dropout rate for different parts?
 _C.MODEL.NUM_HEADS = 2  # number of heads for multi-headed self-attention``
@@ -33,7 +36,7 @@ _C.MODEL.N_LAYERS_ENCODER = 1  # number of ``nn.TransformerEncoderLayer`` for VA
 _C.MODEL.N_LAYERS_DECODER = 1  # number of ``nn.TransformerEncoderLayer`` for VAE decoder
 _C.MODEL.DECODER_POS = False  # whether decoder use positional encoding
 _C.MODEL.EMBED_DIM = 16  # embedding dimension. Note that here is total but NDT is per neuron
-_C.MODEL.LATENT_DIM = 3  # latent dimension
+_C.MODEL.LATENT_DIM = 4  # latent dimension
 _C.MODEL.TIME_WINDOW = 300  # time window
 
 # -----------------------------------------------------------------------------
@@ -42,6 +45,7 @@ _C.MODEL.TIME_WINDOW = 300  # time window
 _C.TRAIN = CfgNode()
 _C.TRAIN.BATCH_SIZE = 128
 _C.TRAIN.BATCH_SIZE_TEST = 64 * 8
+_C.TRAIN.TC_LOSS_BATCH_SIZE = 16
 _C.TRAIN.STEP_SIZE = 10
 _C.TRAIN.STEP_SIZE_TEST = 200
 _C.TRAIN.NUM_UPDATES = 100  # Max updates
@@ -54,9 +58,13 @@ _C.TRAIN.LR.SCHEDULER = "cosine"
 _C.TRAIN.LR.WARMUP = 10
 _C.TRAIN.WEIGHT_DECAY = 0.01
 
-_C.TRAIN.BETA = 0.005  # note that the actual maximum beta is BETA * 19
+_C.TRAIN.BETA = 1e-2  # note that the actual maximum beta is BETA * 19
+_C.TRAIN.VAR_PRIORI = 0.01
+_C.TRAIN.GAMMA = 2e-4  # same logic as beta
+_C.TRAIN.TC_LOSS_STEP_SIZE = 5
+_C.TRAIN.MU_PRIORI_SIGMA = 10.
 
-_C.TRAIN.CHECKPOINT_INTERVAL = 4
+_C.TRAIN.CHECKPOINT_INTERVAL = 10000
 _C.TRAIN.LOGS_PER_EPOCH = 4
 _C.TRAIN.VAL_INTERVAL = 4
 _C.TRAIN.VAL_DRAW_INTERVAL = 24  # must be times of VAL_INTERVAL
@@ -71,6 +79,7 @@ def get_cfg_defaults():
 def get_config(
     config_paths: Optional[Union[List[str], str]] = None,
     opts: Optional[list] = None,
+    freeze: bool = True,
 ) -> CfgNode:
     r"""Create a unified config with default values overwritten by values from
     :p:`config_paths` and overwritten by options from :p:`opts`.
@@ -81,6 +90,7 @@ def get_config(
         command line into the config. For example,
         :py:`opts = ['FOO.BAR', 0.5]`. Argument can be used for parameter
         sweeping or quick tests.
+    :param freeze: Whether to freeze the resulting config node.
     """
     config = get_cfg_defaults()
     if config_paths:
@@ -96,5 +106,6 @@ def get_config(
     if opts:
         config.merge_from_list(opts)
 
-    config.freeze()
+    if freeze:
+        config.freeze()
     return config

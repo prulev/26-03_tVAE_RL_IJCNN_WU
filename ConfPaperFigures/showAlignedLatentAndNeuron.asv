@@ -38,7 +38,7 @@ actionsColor = [0 0.4470 0.7410; 0.9290 0.6940 0.1250; 0.6350 0.0780 0.1840];
 
 %% load data
 fileName = 'rat028_1030';   % or 'rat025_0923'
-test_fold = 5;
+test_fold = 4;
 region = 'M1';
 
 [data, rl, cons, vae] = loadData(fileName, test_fold);
@@ -95,7 +95,7 @@ show1neuron(data, rl, cons, vae, plotNeuron, plotIndex, dataIndex)
 %   'Interpreter','latex', 'FontSize',10, 'FontWeight','bold')
 t = title(['\textbf{' region ' Neuron ', num2str(plotNeuron), '}'], ...
   'Interpreter','latex', 'FontSize',12, 'FontWeight','bold');
-legend({'Recordings', 'w/o latent', 'VAE', 'TC-VAE'}, ...   %original: legend({'Recordings', 'Vanilla RL', 'RL (Spat. Cons.)', 'RL (tVAE)'}, ...
+legend({'Recordings', 'w/o n', '', 'TC-VAE'}, ...   %original: legend({'Recordings', 'Vanilla RL', 'RL (Spat. Cons.)', 'RL (tVAE)'}, ...
   'Interpreter','latex', 'Orientation','horizontal', 'FontSize',10, ...
   'Position',[0.32 0.61 0.6 0.032], 'NumColumns',2)
 ylabel("\bf{firing probabilities}", 'Interpreter','latex', 'FontSize',12)
@@ -139,17 +139,17 @@ hold on
 movements = rl.movements;
 movements(data.movements==0) = 0;
 plotActionsWithPos(plotIndex, movements(dataIndex), actionsColor, xl, 2.6)
-text(bestStart/100+0.5, 3.2, "w/o latent", 'Interpreter','latex', ...   % original: text(bestStart/100+0.5, 3.2, "Vanilla RL", 'Interpreter','latex', ...
+text(bestStart/100+0.5, 3.2, "VAE", 'Interpreter','latex', ...   % original: text(bestStart/100+0.5, 3.2, "Vanilla RL", 'Interpreter','latex', ...
   'FontSize',10, 'Units','data', 'HorizontalAlignment','left')
 ylim([0.5 4.5])
 
-hold on
-movements = cons.movements;
-movements(data.movements==0) = 0;
-plotActionsWithPos(plotIndex, movements(dataIndex), actionsColor, xl, 1.2)
-text(bestStart/100+0.5, 1.8, "VAE", 'Interpreter','latex', ... % original: text(bestStart/100+0.5, 1.8, "RL (Spat. Cons.)", 'Interpreter','latex', ...
-  'FontSize',10, 'Units','data', 'HorizontalAlignment','left')
-ylim([0.5 4.5])
+% hold on
+% movements = cons.movements;
+% movements(data.movements==0) = 0;
+% plotActionsWithPos(plotIndex, movements(dataIndex), actionsColor, xl, 1.2)
+% text(bestStart/100+0.5, 1.8, "RL (Spat. Cons.)", 'Interpreter','latex', ...
+%   'FontSize',10, 'Units','data', 'HorizontalAlignment','left')
+% ylim([0.5 4.5])
 
 hold on
 movements = vae.movements;
@@ -193,10 +193,10 @@ ax.TickLabelInterpreter = 'latex';
 function [data, rl, cons, vae] = loadData(fileName, test_fold)
 
 temp = load(['results/' fileName, '_RL_', num2str(test_fold), '.mat']);
-% data.movements = temp.testActions;
-% data.truth_fr = get_truth_fr(temp.testhM1_truth');
-% data.truth = temp.testhM1_truth';
-% dataLength = length(data.movements);
+data.movements = temp.testActions;
+data.truth_fr = get_truth_fr(temp.testhM1_truth');
+data.truth = temp.testhM1_truth';
+dataLength = length(data.movements);
 
 rl.pre       = temp.pOutputTest';
 rl.spk       = temp.spkOutPredictTest';
@@ -212,11 +212,11 @@ rl.movements = temp.motor_perform_test;
 %   error('Not the same data')
 % end
 
-temp = load(['TC_results/TC5_' fileName, '_RL_oldHP_', num2str(test_fold), '.mat']);
-data.movements = temp.testActions;
-data.truth_fr = get_truth_fr(temp.testM1_truth');
-data.truth = temp.testM1_truth';
-dataLength = length(data.movements);
+temp = load(['TC_results/' fileName, '_RL_oldHP_', num2str(test_fold), '.mat']);
+% data.movements = temp.testActions;
+% data.truth_fr = get_truth_fr(temp.testM1_truth');
+% data.truth = temp.testM1_truth';
+% dataLength = length(data.movements);
 vae.pre       = temp.pOutputTest(:,1:dataLength)';
 vae.spk       = temp.spkOutPredictTest(:,1:dataLength)';
 vae.movements = temp.motor_perform_test(1:dataLength);
