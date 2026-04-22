@@ -110,9 +110,9 @@ class Runner:
             # omit checkpointing for now
             if epoch % self.config.TRAIN.VAL_INTERVAL == 0:
                 results = self.evaluate(test_movements, test_trial_no)
-                if epoch % self.config.TRAIN.VAL_DRAW_INTERVAL == 0:
-                    self.plot_result(results, self.config.CHECKPOINT_DIR, target_file, epoch,
-                                     has_var=self.variational, need_show=self.config.TRAIN.SHOW_PLOTS)
+                # if epoch % self.config.TRAIN.VAL_DRAW_INTERVAL == 0:
+                #     self.plot_result(results, self.config.CHECKPOINT_DIR, target_file, epoch,
+                #                      has_var=self.variational, need_show=self.config.TRAIN.SHOW_PLOTS)
                 val_loss_all.append(results["loss"])
 
 

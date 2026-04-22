@@ -60,7 +60,7 @@ _C.TRAIN.WEIGHT_DECAY = 0.01
 
 _C.TRAIN.BETA = 1e-2  # note that the actual maximum beta is BETA * 19
 _C.TRAIN.VAR_PRIORI = 0.01
-_C.TRAIN.GAMMA = 0  # same logic as beta
+_C.TRAIN.GAMMA = 0.  # same logic as beta
 _C.TRAIN.TC_LOSS_STEP_SIZE = 5
 _C.TRAIN.MU_PRIORI_SIGMA = 10.
 
