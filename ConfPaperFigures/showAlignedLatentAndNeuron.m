@@ -5,7 +5,7 @@ addpath utils\ plotUtils\
 f = figure(1);
 f.Color = 'w';
 f.Units = 'centimeters';
-f.Position = [20 0 12 30];
+f.Position = [60 0 12 30];
 
 actionsColor = [0 0.4470 0.7410; 0.9290 0.6940 0.1250; 0.6350 0.0780 0.1840];
 
@@ -38,7 +38,7 @@ actionsColor = [0 0.4470 0.7410; 0.9290 0.6940 0.1250; 0.6350 0.0780 0.1840];
 
 %% load data
 fileName = 'rat028_1030';   % or 'rat025_0923'
-test_fold = 5;
+test_fold = 3;
 region = 'M1';
 
 [data, rl, cons, vae] = loadData(fileName, test_fold);
@@ -49,7 +49,7 @@ bestStart = 0;
 % bestStart = findBestFit(data, vae, [4 6]);
 % plotIndex = bestStart + (1:2000);
 
-%% show latent
+% show latent
 i= 1;
 subplot('Position', [0.1300    0.83    0.7750    0.117]);
 plot1Latent(plotIndex, dataIndex, vae, i)
@@ -88,14 +88,14 @@ text(-0.085, 1.05, "\textbf{(b)}", 'Interpreter','latex', ...
   'FontSize',12, 'Units','normalized', 'HorizontalAlignment','right')
 
 %% show Neuron
-plotNeuron = 4;
+plotNeuron = 7; % original： 4
 subplot('Position', [0.1300    0.42    0.7750    0.117]);
 show1neuron(data, rl, cons, vae, plotNeuron, plotIndex, dataIndex)
 % title(['\textbf{Rat A ' region ' Neuron ', num2str(plotNeuron), '}'], ...
 %   'Interpreter','latex', 'FontSize',10, 'FontWeight','bold')
 t = title(['\textbf{' region ' Neuron ', num2str(plotNeuron), '}'], ...
   'Interpreter','latex', 'FontSize',12, 'FontWeight','bold');
-legend({'Recordings', 'w/o latent', 'VAE', 'TC-VAE'}, ...   %original: legend({'Recordings', 'Vanilla RL', 'RL (Spat. Cons.)', 'RL (tVAE)'}, ...
+legend({'Recordings', 'with VAE', 'with TC-VAE'}, ...   %original: legend({'Recordings', 'Vanilla RL', 'RL (Spat. Cons.)', 'RL (tVAE)'}, ...
   'Interpreter','latex', 'Orientation','horizontal', 'FontSize',10, ...
   'Position',[0.32 0.61 0.6 0.032], 'NumColumns',2)
 ylabel("\bf{firing probabilities}", 'Interpreter','latex', 'FontSize',12)
@@ -107,7 +107,7 @@ axes('Position', [0.1320    0.535    0.7750    0.05])
 show1neuronSpikes(data, rl, cons, vae, plotNeuron, plotIndex, dataIndex)
 
 %%
-plotNeuron = 6;
+plotNeuron = 2; % original： 6
 subplot('Position', [0.13    0.22    0.7750    0.117]);
 show1neuron(data, rl, cons, vae, plotNeuron, plotIndex, dataIndex)
 % title(['\textbf{Rat A ' region ' Neuron ', num2str(plotNeuron), '}'], ...
@@ -130,24 +130,24 @@ xl = xlim();
 %% show Movements
 % s = subplot(423);
 subplot('Position', [0.13    0.05    0.7750    0.1]);
-plotActionsWithPos(plotIndex, data.movements(dataIndex), actionsColor, xl, 4)
-text(bestStart/100+0.5, 4.6, "Correct movements", 'Interpreter','latex', ...
+plotActionsWithPos(plotIndex, data.movements(dataIndex), actionsColor, xl, 2.6)   % original: ... ... , 4)
+text(bestStart/100+0.5, 3.2, "Correct movements", 'Interpreter','latex', ...  % original: text(bestStart/100+0.5, 4.6, 
   'FontSize',10, 'Units','data', 'HorizontalAlignment','left')
 ylim([0.5 4.5])
 
-hold on
-movements = rl.movements;
-movements(data.movements==0) = 0;
-plotActionsWithPos(plotIndex, movements(dataIndex), actionsColor, xl, 2.6)
-text(bestStart/100+0.5, 3.2, "w/o latent", 'Interpreter','latex', ...   % original: text(bestStart/100+0.5, 3.2, "Vanilla RL", 'Interpreter','latex', ...
-  'FontSize',10, 'Units','data', 'HorizontalAlignment','left')
-ylim([0.5 4.5])
+% hold on
+% movements = rl.movements;
+% movements(data.movements==0) = 0;
+% plotActionsWithPos(plotIndex, movements(dataIndex), actionsColor, xl, 2.6)
+% text(bestStart/100+0.5, 3.2, "w/o latent", 'Interpreter','latex', ...   % original: text(bestStart/100+0.5, 3.2, "Vanilla RL", 'Interpreter','latex', ...
+%   'FontSize',10, 'Units','data', 'HorizontalAlignment','left')
+% ylim([0.5 4.5])
 
 hold on
 movements = cons.movements;
 movements(data.movements==0) = 0;
 plotActionsWithPos(plotIndex, movements(dataIndex), actionsColor, xl, 1.2)
-text(bestStart/100+0.5, 1.8, "VAE", 'Interpreter','latex', ... % original: text(bestStart/100+0.5, 1.8, "RL (Spat. Cons.)", 'Interpreter','latex', ...
+text(bestStart/100+0.5, 1.8, "with VAE", 'Interpreter','latex', ... % original: text(bestStart/100+0.5, 1.8, "RL (Spat. Cons.)", 'Interpreter','latex', ...
   'FontSize',10, 'Units','data', 'HorizontalAlignment','left')
 ylim([0.5 4.5])
 
@@ -155,7 +155,7 @@ hold on
 movements = vae.movements;
 movements(data.movements==0) = 0;
 plotActionsWithPos(plotIndex, movements(dataIndex), actionsColor, xl, -0.2)
-text(bestStart/100+0.5, 0.4, "TC-VAE", 'Interpreter','latex', ...    % original: text(bestStart/100+0.5, 0.4, "RL (tVAE)", 'Interpreter','latex', ...
+text(bestStart/100+0.5, 0.4, "with TC-VAE", 'Interpreter','latex', ...    % original: text(bestStart/100+0.5, 0.4, "RL (tVAE)", 'Interpreter','latex', ...
   'FontSize',10, 'Units','data', 'HorizontalAlignment','left')
 
 text(bestStart/100-1.8, 2, "\bf{Movements}", 'Interpreter','latex', ...
@@ -198,9 +198,9 @@ temp = load(['results/' fileName, '_RL_', num2str(test_fold), '.mat']);
 % data.truth = temp.testhM1_truth';
 % dataLength = length(data.movements);
 
-rl.pre       = temp.pOutputTest';
-rl.spk       = temp.spkOutPredictTest';
-rl.movements = temp.motor_perform_test;
+% rl.pre       = temp.pOutputTest';
+% rl.spk       = temp.spkOutPredictTest';
+% rl.movements = temp.motor_perform_test;
 
 % temp = load(['old_results/' fileName, '_Cons_', num2str(test_fold), '.mat']);
 % cons.pre       = temp.pOutputTest';
@@ -212,7 +212,7 @@ rl.movements = temp.motor_perform_test;
 %   error('Not the same data')
 % end
 
-temp = load(['TC_results/TC5_' fileName, '_RL_oldHP_', num2str(test_fold), '.mat']);
+temp = load(['TC_results/TC_' fileName, '_RL_oldHP_', num2str(test_fold), '.mat']);
 data.movements = temp.testActions;
 data.truth_fr = get_truth_fr(temp.testM1_truth');
 data.truth = temp.testM1_truth';
@@ -223,6 +223,10 @@ vae.movements = temp.motor_perform_test(1:dataLength);
 vae.latent_mu = temp.M1_latent_test(:,1:dataLength);
 vae.latent_std = temp.M1_latent_std_test(:,1:dataLength);
 vae.latent_pre = temp.M1_latent_pre_test(:,1:dataLength);
+
+rl.pre       = zeros(size(vae.pre));
+rl.spk       = zeros(size(vae.spk));
+rl.movements = zeros(size(vae.movements));
 
 temp = load(['results/' fileName, '_RL_oldHP_', num2str(test_fold), '.mat']);
 
@@ -376,7 +380,7 @@ function show1neuron(data, rl, cons, vae, i, timeIndex, dataIndex)
 
 plot(timeIndex, data.truth_fr(dataIndex, i), 'k', LineWidth=2);
 hold on
-plot(timeIndex, rl.pre(dataIndex, i), 'Color', 'g', LineWidth=1);
+% plot(timeIndex, rl.pre(dataIndex, i), 'Color', 'g', LineWidth=1);     % Ziyi, 260415
 plot(timeIndex, cons.pre(dataIndex, i), 'Color', 'b', LineWidth=1); 
 plot(timeIndex, vae.pre(dataIndex, i), 'Color', 'r', LineWidth=2);
 

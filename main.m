@@ -21,7 +21,7 @@ for dataIdx = 6 % 5:6
   DataName = DataNameList(dataIdx);
   data = data_setup(DataName); % load data
   opt = opt_Setup(data); % set options
-  opt.modelName = 'TC5_'; % save TC results to results/TC_...
+  opt.modelName = 'TC10_'; % save TC results to results/TC_...
    
   rng('default');
   for testFold = 5 % 1:opt.foldNum
