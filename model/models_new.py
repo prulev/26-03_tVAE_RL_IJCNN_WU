@@ -24,8 +24,8 @@ class VAE(nn.Module):
         self.encoder = Encoder(config, device, in_neuron_num)
         self.decoder = Decoder(config, device, out_neuron_num)
 
-        self.batch_norm = nn.BatchNorm1d(config.MODEL.LATENT_DIM)
-        self.batch_norm.bias = nn.Parameter(torch.zeros(config.MODEL.LATENT_DIM), requires_grad=False)
+        # self.batch_norm = nn.BatchNorm1d(config.MODEL.LATENT_DIM)
+        # self.batch_norm.bias = nn.Parameter(torch.zeros(config.MODEL.LATENT_DIM), requires_grad=False)    # ***************************
 
         # latent smooth
         sigma = self.config.TRAIN.MU_PRIORI_SIGMA
@@ -70,7 +70,9 @@ class VAE(nn.Module):
             src_mask = nn.Transformer.generate_square_subsequent_mask(len(src)).to(self.device)
 
         mu, log_var = self.encoder(src, src_mask)
-        mu = self.batch_norm(mu.view(-1, self.config.MODEL.LATENT_DIM)).view(log_var.shape)
+
+        # mu = self.batch_norm(mu.view(-1, self.config.MODEL.LATENT_DIM)).view(log_var.shape)   # ***********************
+
         if self.variational and self.training:  # do not sample in testing
             z = self.reparameterize(mu, log_var)
         else:
@@ -91,8 +93,11 @@ class VAE(nn.Module):
         # bce = self.PoissonNLLLoss(recon_x, x)
 
         # Get Priori distribution of latent space
-        var_priori = torch.ones_like(log_var) * self.config.TRAIN.VAR_PRIORI
-        var_priori[0, :, :] = 1.
+        # var_priori = torch.ones_like(log_var) * self.config.TRAIN.VAR_PRIORI      # ************************
+        # var_priori[0, :, :] = 1.
+
+        var_priori = torch.ones_like(log_var) * 1
+
         mu_priori = nn.functional.conv1d(
             nn.functional.pad(mu.detach().permute(1, 2, 0), (self.padding_size, self.padding_size), mode='reflect'),
             self.kernel,
