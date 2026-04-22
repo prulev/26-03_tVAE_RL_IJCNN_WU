@@ -1,7 +1,10 @@
 /data
 /results
+/figs
+/figs_old
 /latent_models
 /show_latent_redundancy.ipynb
 *.ipynb
 *.pyc
+*.png
 __pycache__/**

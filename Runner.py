@@ -14,6 +14,7 @@ import matplotlib.style
 import torch
 from torch import Tensor
 from torch.optim import AdamW
+from data_preparation_realData_suc import action_colors, get_batch_random, get_batch_ss
 from torch.optim.lr_scheduler import SequentialLR, LinearLR, CosineAnnealingLR
 import torch.nn.functional
 
@@ -109,9 +110,9 @@ class Runner:
             # omit checkpointing for now
             if epoch % self.config.TRAIN.VAL_INTERVAL == 0:
                 results = self.evaluate(test_movements, test_trial_no)
-                # if epoch % self.config.TRAIN.VAL_DRAW_INTERVAL == 0:
-                    # self.plot_result(results, self.config.CHECKPOINT_DIR, target_file, epoch,
-                    #                  has_var=self.variational, need_show=self.config.TRAIN.SHOW_PLOTS)
+                if epoch % self.config.TRAIN.VAL_DRAW_INTERVAL == 0:
+                    self.plot_result(results, self.config.CHECKPOINT_DIR, target_file, epoch,
+                                     has_var=self.variational, need_show=self.config.TRAIN.SHOW_PLOTS)
                 val_loss_all.append(results["loss"])
 
 
@@ -142,7 +143,7 @@ class Runner:
         torch.save(save_dict, f'{self.config.RESULT_DIR}{target_file}.pth')
         results = self.evaluate(test_movements, test_trial_no)
         self.plot_result(results, self.config.FIG_DIR, target_file, self.config.TRAIN.NUM_UPDATES,
-                         has_var=self.variational, need_show=self.config.TRAIN.SHOW_PLOTS, dataset_type='test')
+                         has_var=self.variational, need_show=self.config.TRAIN.SHOW_PLOTS)
         results["train_loss_all"] = train_loss_all
         results["val_loss_all"] = val_loss_all
         scio.savemat(f'{self.config.RESULT_DIR}/{target_file}.mat', results)
@@ -274,56 +275,58 @@ class Runner:
             plt.show()
         plt.close()
 
-    def plot_result(self, results, save_dir, target_file, epoch, has_var, need_show, dataset_type='test'):
-        plot_time = np.arange(0, 3, 0.01)
-        plot_indexes = range(0, 300)
+    @staticmethod
+    def plot_result(results, save_dir, target_file, epoch, has_var, need_show):
+        plot_time = np.arange(0, 30, 0.01)
+        plot_indexes = range(0, 3000)
 
         results_flattened = {}
         for key in results: 
             if key != 'loss': 
-                results_flattened[key] = results[key][:, :10, :].transpose(1, 0, 2).reshape(-1, results[key].shape[2])
+                results_flattened[key] = results[key][-200:, :, :].transpose(1, 0, 2).reshape(-1, results[key].shape[2])
+
+        results = results_flattened
 
         fig, axs = plt.subplots(4, 2)
         for i in range(3):
             for j in range(2):
+                # plot actions
+                colors = action_colors[results["movements"][plot_indexes, 0].astype(int)]
+                axs[i, j].bar(plot_time, np.ones(len(plot_indexes)), color=colors, bottom=0, alpha=0.5)
                 # plot firing rate of neuron i
-                rate = results_flattened["true_rate"][plot_indexes, i * 2 + j]
+                rate = gaussian_filter1d(results["truth"][plot_indexes, i * 2 + j+10], sigma=10)
                 axs[i, j].plot(plot_time, rate, label='Ground Truth', color='k')
-                axs[i, j].plot(plot_time, results_flattened["predictions"][plot_indexes, i * 2 + j],
+                axs[i, j].plot(plot_time, results["predictions"][plot_indexes, i * 2 + j+10],
                                label='Predictions', color='g')
-                if not self.config.DATA.RATE_INPUT:
-                    # plot spike trains of neuron i
-                    spike_times = plot_time[results_flattened["truth"][plot_indexes, i * 2 + j] >= 1]
-                    axs[i, j].vlines(spike_times, 0.75, 0.95, color='k', linewidth=0.3, label='Truth Spikes')
-                    spike_times = plot_time[results_flattened["predicted_spikes"][plot_indexes, i * 2 + j] == 1]
-                    axs[i, j].vlines(spike_times, 0.5, 0.7, color='g', linewidth=0.3, label='Predicted Spikes')
-                axs[i, j].set_title('Neuron ' + str(i * 2 + j))
+                # plot spike trains of neuron i
+                spike_times = plot_time[results["truth"][plot_indexes, i * 2 + j+10] == 1]
+                axs[i, j].vlines(spike_times, 0.75, 0.95, color='k', linewidth=0.3, label='Truth Spikes')
+                spike_times = plot_time[results["predicted_spikes"][plot_indexes, i * 2 + j+10] == 1]
+                axs[i, j].vlines(spike_times, 0.5, 0.7, color='g', linewidth=0.3, label='Predicted Spikes')
+                axs[i, j].set_title('Neuron ' + str(i * 2 + j+10))
                 axs[i, j].set_xticklabels([])
         axs[2, 0].set_ylabel('Firing Probability')
         axs[0, 1].legend(loc='upper right', bbox_to_anchor=(1.8, 1.2))
 
-        for d in range(results_flattened["latent_mu"].shape[1]):
-            axs[3, 0].plot(plot_time, results_flattened["latent_mu"][plot_indexes, d])
+        for d in range(results["latent_mu"].shape[1]):
+            axs[3, 0].plot(plot_time, results["latent_mu"][plot_indexes, d])
             if has_var:
                 axs[3, 0].fill_between(
                     plot_time,
-                    (results_flattened["latent_mu"][plot_indexes, d] - results_flattened["latent_std"][plot_indexes, d]).squeeze(),
-                    (results_flattened["latent_mu"][plot_indexes, d] + results_flattened["latent_std"][plot_indexes, d]).squeeze(),
+                    (results["latent_mu"][plot_indexes, d] - results["latent_std"][plot_indexes, d]).squeeze(),
+                    (results["latent_mu"][plot_indexes, d] + results["latent_std"][plot_indexes, d]).squeeze(),
                     alpha=.1)
 
-            axs[3, 1].plot(plot_time, gaussian_filter1d(results_flattened["latent_mu"][plot_indexes, d],
-                                                        sigma=self.config.TRAIN.MU_PRIORI_SIGMA))
+            axs[3, 1].plot(plot_time, gaussian_filter1d(results["latent_mu"][plot_indexes, d], sigma=10))
             if has_var:
                 axs[3, 1].fill_between(
                     plot_time,
-                    (gaussian_filter1d(results_flattened["latent_mu"][plot_indexes, d],
-                                       sigma=self.config.TRAIN.MU_PRIORI_SIGMA) - 0.1).squeeze(),
-                    (gaussian_filter1d(results_flattened["latent_mu"][plot_indexes, d],
-                                       sigma=self.config.TRAIN.MU_PRIORI_SIGMA) + 0.1).squeeze(),
+                    (gaussian_filter1d(results["latent_mu"][plot_indexes, d], sigma=10) - 1).squeeze(),
+                    (gaussian_filter1d(results["latent_mu"][plot_indexes, d], sigma=10) + 1).squeeze(),
                     alpha=.1)
             axs[3, 0].set_xlabel('Time (sec)')
 
-        plt.savefig(f'{save_dir}/pred_result_{target_file}_{epoch}_'+dataset_type+'.png', bbox_inches='tight')
+        plt.savefig(f'{save_dir}/{target_file}_{epoch}.png', bbox_inches='tight')
+
         if need_show:
             plt.show()
-        plt.close()

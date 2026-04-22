@@ -7,4 +7,4 @@ MODEL:
 
 TRAIN:
   CHECKPOINT_INTERVAL: 1000  # no checkpoint needed
-  VAL_DRAW_INTERVAL: 1000  # no need for plots during training
+  VAL_DRAW_INTERVAL: 4  # no need for plots during training

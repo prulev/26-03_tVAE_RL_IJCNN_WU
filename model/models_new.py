@@ -115,6 +115,9 @@ class VAE(nn.Module):
 
         # return bce + beta * kld, bce, kld, kld
 
+        if gamma == 0.:
+            return recon_loss + beta * kld, recon_loss, kld, torch.tensor(0.)
+        
         # TC loss
         mini_mini_batch = self.config.TRAIN.TC_LOSS_BATCH_SIZE
         tc_loss_step_size = self.config.TRAIN.TC_LOSS_STEP_SIZE
