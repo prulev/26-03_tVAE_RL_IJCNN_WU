@@ -10,8 +10,8 @@ hold off
 ylim([0.8 1.2])
 xlim(xRange)
 box off
-set(gca, 'YColor', 'none')
-set(gca, 'XColor', 'none')
+set(gca, 'YColor', 'white')
+set(gca, 'XColor', 'white')
 set(gca, 'TickLength', [0 0])
 end
 
